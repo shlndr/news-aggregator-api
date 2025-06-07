@@ -1,61 +1,185 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# News Aggregator API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A Dockerized Laravel RESTful API for aggregating news from multiple sources, with user authentication, article management, user preferences, personalized feeds, and scheduled news fetching.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Features
+- User registration, login, logout (Laravel Sanctum)
+- CRUD for articles (with pagination, search, filtering)
+- User preferences (category, source)
+- Personalized news feed
+- Aggregates news from NewsAPI, The Guardian, and NYT
+- Scheduled news fetching (via Artisan command)
+- PostgreSQL database
+- Caching and rate limiting
+- Feature tests
+- Dockerized for easy setup
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Getting Started
 
-## Learning Laravel
+### Prerequisites
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- [Git](https://git-scm.com/downloads)
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### Clone the Repository
+```sh
+# Clone your repo
+git clone https://github.com/shlndr/news-aggregator-api
+cd news-aggregator-api
+```
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### Environment Setup
+1. Copy `.env.example` to `.env` in the `src/` directory and set your values:
+   - Database: PostgreSQL (see `docker-compose.yml` for credentials)
+   - News API keys: `NEWSAPI_KEY`, `GUARDIAN_KEY`, `NYT_KEY`
+   
+Example:
+```env
+DB_CONNECTION=pgsql
+DB_HOST=db
+DB_PORT=5432
+DB_DATABASE=laravel
+DB_USERNAME=laravel
+DB_PASSWORD=secret
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+NEWSAPI_KEY=your_newsapi_key
+GUARDIAN_KEY=your_guardian_key
+NYT_KEY=your_nyt_key
+```
 
-## Laravel Sponsors
+### Build and Start Containers
+```sh
+docker compose build
+docker compose up
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### Run Migrations
+```sh
+docker compose exec app php artisan migrate
+```
 
-### Premium Partners
+### Fetch News (Manual)
+```sh
+docker compose exec app php artisan app:fetch-news
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### Schedule News Fetching (Optional)
+```sh
+docker compose exec app php artisan schedule:work
+```
 
-## Contributing
+---
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## API Usage
 
-## Code of Conduct
+### Authentication
+- Register: `POST /api/register`
+- Login: `POST /api/login`
+- Logout: `POST /api/logout` (Bearer token required)
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### Articles
+- List: `GET /api/articles`
+- Create: `POST /api/articles`
+- Show: `GET /api/articles/{id}`
+- Update: `PUT/PATCH /api/articles/{id}`
+- Delete: `DELETE /api/articles/{id}`
+- Search: `GET /api/articles?search=keyword`
+- Filter: `GET /api/articles?author=...&published_at=...`
 
-## Security Vulnerabilities
+### Preferences
+- List: `GET /api/preferences`
+- Create: `POST /api/preferences`
+- Update: `PUT/PATCH /api/preferences/{id}`
+- Delete: `DELETE /api/preferences/{id}`
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### Personalized Feed
+- `GET /api/feed/personalized`
+
+**All endpoints (except register/login) require Bearer token authentication.**
+
+---
+
+## Testing
+
+Run feature and unit tests:
+```sh
+docker compose exec app php artisan test
+```
+
+---
+
+## Caching & Rate Limiting
+- Article and personalized feed endpoints are cached for 10 minutes.
+- All API endpoints are rate-limited (60 requests per minute per user).
+
+---
+
+## API Documentation (Swagger)
+- Access the Swagger documentation at `/api/documentation`.
+- To regenerate the Swagger docs, run:
+  ```sh
+  docker compose exec app php artisan l5-swagger:generate
+  ```
+
+---
 
 ## License
+MIT
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+---
+
+## First-Time User Guide
+
+### Step 1: Clone and Setup
+1. Clone the repository:
+   ```sh
+   git clone https://github.com/shlndr/news-aggregator-api
+   cd news-aggregator-api
+   ```
+2. Copy `.env.example` to `.env` in the `src/` directory and update your environment variables (database, API keys, etc.).
+
+### Step 2: Start the Application
+1. Build and start the Docker containers:
+   ```sh
+   docker compose build
+   docker compose up
+   ```
+2. Run migrations to set up the database:
+   ```sh
+   docker compose exec app php artisan migrate
+   ```
+
+### Step 3: Fetch News
+- Manually fetch news:
+  ```sh
+  docker compose exec app php artisan app:fetch-news
+  ```
+- Or schedule news fetching:
+  ```sh
+  docker compose exec app php artisan schedule:work
+  ```
+
+### Step 4: Explore the API
+- Register a new user: `POST /api/register`
+- Login to get your Bearer token: `POST /api/login`
+- Use the token to access protected endpoints (e.g., `GET /api/articles`, `GET /api/feed/personalized`).
+- Check the Swagger documentation at `/api/documentation` for detailed API usage.
+
+### Step 5: Run Tests
+- Run the test suite:
+  ```sh
+  docker compose exec app php artisan test
+  ```
+
+---
+
+## Troubleshooting
+- If you encounter issues, check the Docker logs:
+  ```sh
+  docker compose logs
+  ```
+- Ensure your `.env` file is correctly configured.
+- Verify that all required services (PostgreSQL, Redis) are running.
