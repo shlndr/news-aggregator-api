@@ -1,5 +1,7 @@
 <?php
 
+use Laravel\Sanctum\Sanctum;
+
 return [
 
     /*
@@ -33,6 +35,18 @@ return [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
+    ],
+
+    'newsapi' => [
+        'key' => env('NEWSAPI_KEY'),
+    ],
+
+    'guardian' => [
+        'key' => env('GUARDIAN_KEY'),
+    ],
+
+    'nyt' => [
+        'key' => env('NYT_KEY'),
     ],
 
 ];
