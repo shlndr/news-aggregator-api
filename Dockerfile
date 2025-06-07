@@ -1,39 +1,33 @@
-# Dockerfile for Laravel 10 + PHP 8.2 + Composer + PostgreSQL extensions
 FROM php:8.2-fpm
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
-    build-essential \
-    libpng-dev \
-    libjpeg-dev \
-    libfreetype6-dev \
-    locales \
-    zip \
-    jpegoptim \
-    optipng \
-    pngquant \
     git \
     curl \
     libpq-dev \
-    unzip
-
-# Install PHP extensions
-RUN docker-php-ext-install pdo pdo_pgsql pgsql gd
+    unzip \
+    libzip-dev \
+    zip \
+    && docker-php-ext-install pdo pdo_pgsql zip
 
 # Install Composer
 COPY --from=composer:2.5 /usr/bin/composer /usr/bin/composer
 
 # Set working directory
-WORKDIR /var/www
+WORKDIR /var/www/src
 
 # Copy existing application directory contents
-COPY . /var/www
+COPY ./src /var/www/src
+
+# Create .env file
+RUN cp .env.example .env
 
 # Install dependencies
-RUN composer install --no-interaction --prefer-dist --optimize-autoloader
+RUN composer install
 
-# Set permissions
-RUN chown -R www-data:www-data /var/www
+# Generate application key
+RUN php artisan key:generate
 
-EXPOSE 9000
-CMD ["php-fpm"] 
+# Expose port 8000 and start Laravel's built-in server
+EXPOSE 8000
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"] 
